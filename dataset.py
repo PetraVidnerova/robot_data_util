@@ -7,7 +7,7 @@ from torchvision.io import read_image
 
 class RobotDataSet(Dataset):
 
-    def __init__(self, filename="data_list.csv", data_root="./exp7500", image_list=None, transform=None, device="cpu"):
+    def __init__(self, filename="data_list.csv", data_root="./exp7500", image_list=None, transform=None):
         df = pd.read_csv(filename)
         if image_list is not None:
             selection = df["subdir"].apply(lambda x: int(x[2:])).isin(image_list)
@@ -43,13 +43,31 @@ class RobotDataSet(Dataset):
         return image, y
 
 
+class RobotPreprocessedDataSet(RobotDataSet):
+
+    def __getitem__(self, idx):
+        item_name = self.img_names[idx]
+        suffix = item_name.split(".")[-1]
+        basename = ".".join(item_name.split(".")[:-1])
+        
+        img_path = os.path.join(self.data_root, basename+".pt")
+
+        image = torch.load(img_path)
+        y = self.y[idx]
+        image = self.transform(image)
+        y = self.target_transform(y)
+        
+        return image, y
+    
 
 if __name__ == "__main__":
 
-    ds = RobotDataSet("data_list.csv", image_list=[1])
+    #    ds = RobotDataSet("data_list.csv", image_list=[1])
+    ds = RobotPreprocessedDataSet("data_list.csv", data_root="./exp7500_512x512", image_list=[1])
     dl = DataLoader(ds, batch_size=1, shuffle=False)
 
     for image, y in dl:
         print(image)
         print(image.shape)
         print(y)
+        

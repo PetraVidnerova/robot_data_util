@@ -5,7 +5,7 @@ import torchvision
 from torch.nn import Conv2d, Linear
 from torch.utils.data import DataLoader
 
-from dataset import RobotDataSet
+from dataset import RobotPreprocessedDataSet
 
 def create_network():
     alexnet = torchvision.models.alexnet(weights=None)
@@ -75,8 +75,7 @@ def train(net,
 
 def create_data_loader(fname="data_list.csv", image_list=None, shuffle=True):
 
-    device = "cuda:1" if torch.cuda.is_available() else "cpu" # assuming we have at least two gpus !!!! fix
-    ds = RobotDataSet(fname, image_list=image_list, device=device)
+    ds = RobotPreprocessedDataSet(fname, data_root="./exp7500_512x512", image_list=image_list)
     dl = DataLoader(ds, batch_size=32, shuffle=shuffle, num_workers=16)
     return dl
 
